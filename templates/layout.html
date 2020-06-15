@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+
+    <title>Bibliomania</title>
+
+    <!-- Bootstrap core CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
+
+    <!-- Custom styles for this template -->
+    <link href="{{ url_for('static', filename='starter-template.css') }}" rel="stylesheet">
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top">
+
+        <div class="collapse navbar-collapse" id="navbarsExampleDefault">
+            <a class="navbar-brand" href="#">Bibliomania</a>
+        </div>
+        <a class="btn btn-outline-success my-2 my-sm-0" href="{{ url_for('logout') }}" role="button">Logout</a>
+    </nav>
+
+    <main role="main" class="container">
+        <div class="row justify-content-md-center">
+            <form class="col-md-6 col-sm-12" action="{{ url_for('search') }}" method="GET">
+                <div class="form-group">
+                    <input name="input" type="text" placeholder="Search by ISBN, Title, Author"
+                        class="form-control form-control-lg" id="exampleInputPassword1">
+                </div>
+                <button type="submit" class="btn btn-primary btn-lg" style="width:50%; margin-left:25%">Search</button>
+            </form>
+        </div>
+
+        {% block body%}
+        {% endblock %}
+
+    </main>
+
+
+</body>
+
+</html>

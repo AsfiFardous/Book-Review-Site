@@ -1,0 +1,29 @@
+{% extends "layout.html" %}
+
+
+{% block body %}
+<main role="main" class="container">
+
+    <h3>All matched books</h3>
+    {% if message|length %}
+        {{message}}
+    {% else %}
+    <div class="list-group">
+        {% for book in books %}
+        <a href="{{ url_for('detail', isbn=book.isbn) }}" class="list-group-item list-group-item-action ">
+            <div class="d-flex w-100 justify-content-between">
+                <h5 class="mb-1">{{ book.title}}</h5>
+                <small>{{ book.author_name}}</small>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+
+</main>
+
+
+
+
+{% endblock %}
