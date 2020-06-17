@@ -19,14 +19,12 @@
     <form action="{{ url_for('detail', isbn=book.isbn) }}" method="post">
         <div class="form-group">
             <label>Add a review:</label>
-            <textarea class="form-control" rows="3" name="comment"></textarea>
+            <textarea class="form-control" rows="3" name="comment" required></textarea>
 
-
-            <!-- <input class="form-control" type="number" name="rating" min="1" max="5"> -->
         </div>
         <div class="form-group"> <label>Give your rating:</label>
             <div class="form-check form-check-inline">
-                <input class="form-check-input" type="radio" name="rating" id="inlineRadio1" value="1">
+                <input class="form-check-input" type="radio" name="rating" id="inlineRadio1" value="1" required>
                 <label class="form-check-label" for="inlineRadio1">1</label>
             </div>
             <div class="form-check form-check-inline">
@@ -53,18 +51,38 @@
 
     <h1 style="margin-top: 2rem;">Reviews</h1>
     {% if message|length %}
-        <p>No review</p>
+    <p>{{message}}</p>
     {% else %}
     <ul>
-        {% for body in body %}
+        {% for comment in body %}
+        {% if comment_id == comment.comment_id %}
+        <form action="{{ url_for('editcomment', comment_id=comment.comment_id,isbn=book.isbn)}}" method='POST'>
+            <textarea class="form-control" rows="3" name="edit" >{{comment.comment_body}}</textarea>
+            <button type="submit" class="btn btn-primary">Edit</button>
+        </form>
+        {% else %}
         <div class="media" style="padding-bottom:8px;">
             <div class="media-body">
-                <p style="margin-bottom: 0px;" class="mt-0"><strong>{{body.username}}</strong> <small>on
-                        {{body.comment_date.strftime('%Y-%m-%d')}}</small></p>
-                <small>{{body.comment_body}}</small>
+                <p style="margin-bottom: 0px;" class="mt-0"><strong>{{comment.username}}</strong> <small>on
+                        {{comment.comment_date.strftime('%Y-%m-%d')}}</small></p>
+                <small>{{comment.comment_body}}</small>
+            </div>
+            <div>
+
+                {% if session_username == comment.username %}
+                <a href="{{ url_for('editcomment', comment_id=comment.comment_id, isbn=book.isbn) }}"><img
+                        src="{{url_for('static', filename='icons/pencil-square.svg')}}" alt="" width="16" height="16"
+                        title="Bootstrap">
+                </a>
+                <a href="{{ url_for('deletecomment', comment_id=comment.comment_id, isbn=book.isbn) }}"><img
+                        src="{{url_for('static', filename='icons/x-circle-fill.svg')}}" alt="" width="16" height="16"
+                        title="Bootstrap">
+                </a>
+                {% endif %}
+
             </div>
         </div>
-
+        {% endif %}
         {% endfor %}
     </ul>
     {% endif %}

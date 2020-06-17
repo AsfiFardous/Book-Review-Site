@@ -10,10 +10,8 @@
 
     <title>Bibliomania</title>
 
-    <!-- Bootstrap core CSS -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
 
-    <!-- Custom styles for this template -->
     <link href="{{ url_for('static', filename='starter-template.css') }}" rel="stylesheet">
 </head>
 
@@ -31,7 +29,7 @@
             <form class="col-md-6 col-sm-12" action="{{ url_for('search') }}" method="GET">
                 <div class="form-group">
                     <input name="input" type="text" placeholder="Search by ISBN, Title, Author"
-                        class="form-control form-control-lg" id="exampleInputPassword1">
+                        class="form-control form-control-lg" id="exampleInputPassword1" required>
                 </div>
                 <button type="submit" class="btn btn-primary btn-lg" style="width:50%; margin-left:25%">Search</button>
             </form>

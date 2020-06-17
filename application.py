@@ -5,7 +5,7 @@ from flask import jsonify
 from flask import Flask, session
 from flask_session import Session
 from sqlalchemy import create_engine
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, redirect, url_for
 from sqlalchemy.orm import scoped_session, sessionmaker
 from datetime import datetime
 from comment import comment_detail
@@ -31,17 +31,12 @@ def index():
     return render_template("index.html")
 
 
-# @app.route("/sign_in_form")
-# def sign_in_form():
-#     return render_template("sign_in.html")
-
 
 @app.route("/sign_in",  methods=["POST"])
 def sign_in():
 
     username = request.form.get("username")
     pwd = request.form.get("pwd")
-    # print(username)
     user = db.execute("SELECT * FROM user_table WHERE username = :username AND password = :pwd",
                       {"username": username, "pwd": pwd}).fetchone()
     if user is None:
@@ -51,10 +46,6 @@ def sign_in():
         session["password"] = pwd
         return render_template("search.html")
 
-
-# @app.route("/sign_up_form")
-# def sign_up_form():
-#     return render_template("sign_up.html")
 
 
 @app.route("/sign_up",  methods=["POST", "GET"])
@@ -88,31 +79,31 @@ def search():
     books = db.execute("SELECT * FROM books WHERE (isbn LIKE :isbn OR title LIKE :title OR author_name LIKE :author_name)",
                        {"isbn": '%'+input+'%', "title": '%'+input+'%', "author_name": '%'+input+'%'}).fetchall()
 
-    # db.commit()
-    # print(books)
     if len(books) == 0:
         return render_template("book.html", message="No matched result.")
     else:
         return render_template("book.html", books=books)
 
 
-@app.route("/detail/<isbn>", methods=["GET", "POST"])
+@app.route("/detail/<isbn>", methods=["GET", "POST", "PATCH"])
 def detail(isbn):
     if request.method == 'GET':
-        param = comment_detail(isbn)
-        
-        return render_template("detail.html", **param, message="No review.")
+        if 'username' in session:
+            username = session['username']
+            param = comment_detail(isbn)
+            if not param["body"]:
+                return render_template("detail.html", message="No review.", **param)
+            else:
+                return render_template("detail.html", session_username=username, **param)
 
     elif request.method == 'POST':
         if 'username' in session:
             username = session['username']
             comment = request.form.get("comment")
             rate = request.form.get("rating")
-            # print(isbn)
             userId = db.execute("SELECT user_id FROM user_table WHERE username = :username",
                                 {"username": username}).fetchone()
-            
-            # print(param)
+
             if db.execute("SELECT *FROM comments WHERE user_id = :user_id AND isbn = :isbn",
                           {"user_id": userId[0], "isbn": isbn}).rowcount == 0:
                 db.execute("INSERT INTO comments(isbn,user_id,comment_body,rating) VALUES (:isbn, :id, :comment_body, :rating)",
@@ -120,9 +111,67 @@ def detail(isbn):
 
                 db.commit()
                 param = comment_detail(isbn)
-                return render_template("detail.html", **param)
+                return render_template("detail.html", session_username=username, **param)
             else:
                 return render_template("error.html",  message="Sorry you can give review only once.")
+
+
+
+@app.route("/deletecomment/<comment_id>/<isbn>", methods=["GET"])
+def deletecomment(comment_id, isbn):
+    
+    if 'username' in session:
+        username = session['username']
+
+        userId = db.execute("SELECT user_id FROM user_table WHERE username = :username",
+                            {"username": username}).fetchone()
+        print(userId)
+        comment = db.execute("SELECT *FROM comments WHERE comment_id = :comment_id",
+                             {"comment_id": int(comment_id)}).fetchone()
+        db.commit()  
+        print(comment_id)               
+        print(comment)
+        if comment[2] == userId[0]:
+            db.execute("DELETE FROM comments WHERE comment_id = :comment_id",
+                       {"comment_id": int(comment_id)})   
+            db.commit()          
+            return redirect(url_for('detail',isbn=isbn))
+        else:
+            return "You cannot remove comment"
+
+    else:
+        return "You cannot remove comment"
+
+@app.route("/editcomment/<comment_id>/<isbn>", methods=["GET", "POST"])
+def editcomment(comment_id, isbn):
+    if 'username' in session:
+        username = session['username']
+        if request.method == 'GET':
+            userId = db.execute("SELECT user_id FROM user_table WHERE username = :username",
+                                {"username": username}).fetchone()
+       
+            comment = db.execute("SELECT *FROM comments WHERE comment_id = :comment_id",
+                                {"comment_id": int(comment_id)}).fetchone()
+            db.commit()                  
+            
+            if comment[2] == userId[0]:  
+                
+                param = comment_detail(isbn)
+                print( param)
+                return render_template("detail.html", comment_id=int(comment_id) , **param)        
+                   
+            else:
+                return "You cannot edit the comment"
+        elif request.method == 'POST':
+            comment_body = request.form.get("edit")
+            print(comment_body)
+            db.execute("UPDATE comments SET comment_body=:comment_body WHERE comment_id = :comment_id",
+                                {"comment_body": comment_body,"comment_id": int(comment_id)})
+            db.commit()          
+            return redirect(url_for('detail',isbn=isbn))
+
+    else:
+        return "You cannot remove comment"
 
 
 @app.route("/api/<isbn>", methods=["GET"])
@@ -137,34 +186,3 @@ def api(isbn):
                    average_score=param["avg_rating"]
                    )
 
-# @app.route("/flights/<int:flight_id>")
-# def flight(flight_id):
-# """Lists details about a single flight."""
-
-# Make sure flight exists.
-# flight = db.execute("SELECT * FROM flights WHERE id = :id", {"id": flight_id}).fetchone()
-# if flight is None:
-#     return render_template("error.html", message="No such flight.")
-# @app.route("/")
-# def index():
-#     flights = db.execute("SELECT * FROM flights").fetchall()
-#     return render_template("index.html", flights=flights)
-
-# @app.route("/book", methods=["POST"])
-# def book():
-#     """Book a flight."""
-
-#     # Get form information.
-#     name = request.form.get("name")
-#     try:
-#         flight_id = int(request.form.get("flight_id"))
-#     except ValueError:
-#         return render_template("error.html", message="Invalid flight number.")
-
-#     # Make sure the flight exists.
-#     if db.execute("SELECT * FROM flights WHERE id = :id", {"id": flight_id}).rowcount == 0:
-#         return render_template("error.html", message="No such flight with that id.")
-#     db.execute("INSERT INTO passengers (name, flight_id) VALUES (:name, :flight_id)",
-#             {"name": name, "flight_id": flight_id})
-#     db.commit()
-#     return render_template("success.html")
