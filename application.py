@@ -137,10 +137,10 @@ def deletecomment(comment_id, isbn):
             db.commit()          
             return redirect(url_for('detail',isbn=isbn))
         else:
-            return "You cannot remove comment"
+            return render_template("error.html",  message="You cannot remove comment")
 
     else:
-        return "You cannot remove comment"
+        return render_template("error.html",  message="You cannot remove comment")
 
 @app.route("/editcomment/<comment_id>/<isbn>", methods=["GET", "POST"])
 def editcomment(comment_id, isbn):
@@ -161,7 +161,7 @@ def editcomment(comment_id, isbn):
                 return render_template("detail.html", comment_id=int(comment_id) , **param)        
                    
             else:
-                return "You cannot edit the comment"
+                return render_template("error.html",  message="You cannot edit comment")
         elif request.method == 'POST':
             comment_body = request.form.get("edit")
             print(comment_body)
@@ -171,18 +171,23 @@ def editcomment(comment_id, isbn):
             return redirect(url_for('detail',isbn=isbn))
 
     else:
-        return "You cannot remove comment"
+        return render_template("error.html",  message="You cannot edit comment")
+       
 
 
 @app.route("/api/<isbn>", methods=["GET"])
 def api(isbn):
-    param = comment_detail(isbn)
+    if db.execute("SELECT *FROM books WHERE isbn = :isbn",
+                          {"isbn": isbn}).rowcount == 0:
+        return render_template("error.html",  message="404 Error! Cannot find the book.")  
+    else:
+        param = comment_detail(isbn)
 
-    return jsonify(title=param["book"][1],
-                   author=param["book"][2],
-                   year=param["book"][3],
-                   isbn=param["book"][0],
-                   review_count=param["rating"],
-                   average_score=param["avg_rating"]
-                   )
+        return jsonify(title=param["book"][1],
+                    author=param["book"][2],
+                    year=param["book"][3],
+                    isbn=param["book"][0],
+                    review_count=param["rating"],
+                    average_score=param["avg_rating"]
+                    )
 

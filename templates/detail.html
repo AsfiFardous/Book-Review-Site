@@ -10,7 +10,7 @@
 </div>
 
 <div class="col-md-4">
-    <p>Average Rating: {{ avg_rating}}</p>
+    <p>Average Rating: {{'%0.1f' | format(avg_rating|float)}}</p>
     <p>Total Ratings: {{rating}}</p>
 
 </div>
