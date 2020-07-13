@@ -1,5 +1,5 @@
 
-# Web Programming with Python and JavaScript
+# Web Programming with Python
 
 1. Users will be able to register and then log in using their username and password.
 2. Once they log in, they will be able to search for books, leave reviews for individual books, and see the reviews made by other people.
